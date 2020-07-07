@@ -1,0 +1,6 @@
+{
+    "require": {
+        "lcobucci/jwt": "^3.3",
+        "ext-gd": "*"
+    }
+}
