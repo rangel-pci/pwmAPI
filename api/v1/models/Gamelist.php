@@ -1,8 +1,4 @@
 <?php
-	//session_start();
-	//$_SESSION['loggedUser'] = false;
-	//$_SESSION['userId'] = 0;
-
 	require_once('Game.php');
 	require_once('dbConnect.php');
 

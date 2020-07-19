@@ -1,10 +1,4 @@
 <?php
-	
-	session_start();
-	$_SESSION['loggedUser'] = false;
-	$_SESSION['userId'] = 1;
-	$_SESSION['loggedUserAdmin'] = false;
-
 	require_once('Gamelist.php');
 	require_once('Like.php');
 	require_once('Dislike.php');
