@@ -1,0 +1,7 @@
+disposabel_files.txt 		#Descreve os arquivos que não precisam ir para produção
+create_tables.sql 			#Cria as tabelas no banco de dados
+demo.png					#Utilizado como demonstração no readme.md
+insert_games.sql 			#Insere alguns jogos no banco de dados
+insert_games_sql_maker.js 	#Script utilizado para buscar jogos na api da rawg e criar um sql com esses dados
+logo.svg					#Utilizado como icone no readme.md
+README.md 					#Informações a respeito da aplicação

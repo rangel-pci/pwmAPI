@@ -32,7 +32,7 @@
 
 			//target pode ser um id ou uma key pra verificação de conta
 			$target = 0;
-			//ex: http://localhost/www/PlayWithMe/api/v1/user/{alvo}
+			//ex: http://localhost/api/v1/user/{alvo}
 			if (isset($url[0])) {
 				$target = $url[0];
 				array_shift($url);
@@ -101,7 +101,7 @@
 					default:
 
 						http_response_code(405);
-						return json_encode(array('status'=>'405', 'resposne'=>'allowed methods GET, POST, PUT, DELETE'));
+						return json_encode(array('status'=>'405', 'resposne'=>'API documentation '.Config::$api_doc_link));
 						break;
 				}
 			}

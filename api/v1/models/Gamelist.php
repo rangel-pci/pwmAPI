@@ -59,8 +59,9 @@
 				$game_list[] = $game_details['response'];
 			}
 
-			$name = array_column($game_list, 'name');
-			array_multisort($name, SORT_ASC, $game_list);
+			// $name = array_column($game_list, 'name');
+			// array_multisort($name, SORT_ASC, $game_list);
+			$game_list = array_reverse($game_list);
 			
 			http_response_code(200);
 			return json_encode(array('status'=>'200', 'response'=>array('game_list'=>$game_list)));
@@ -79,7 +80,7 @@
 			if(gettype($isLogged) !== gettype(1)){
 				
 				http_response_code(401);
-				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, login at api.playwithme/login to continue'));
+				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, log in to continue'));
 			}else{
 				$user_id = $isLogged;
 			}
@@ -133,7 +134,7 @@
 			if(gettype($isLogged) !== gettype(1)){
 				
 				http_response_code(401);
-				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, login at api.playwithme/login to continue'));
+				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, log in to continue'));
 			}else{
 				$user_id = $isLogged;
 			}

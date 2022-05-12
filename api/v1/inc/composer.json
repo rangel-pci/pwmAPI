@@ -1,6 +1,7 @@
 {
     "require": {
-        "lcobucci/jwt": "^3.3",
-        "ext-gd": "*"
+        "lcobucci/jwt": "3.3.2",
+        "ext-gd": "*",
+        "phpmailer/phpmailer": "^6.6"
     }
 }

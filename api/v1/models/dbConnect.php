@@ -1,8 +1,12 @@
 <?php
 	function dbConnect(){
+		$h = Config::$db_host;
+		$n = Config::$db_name;
+		$u = Config::$db_user;
+		$p = Config::$db_password;
 
 		try{
-			$pdo = new PDO('mysql:host=127.0.0.1;dbname=pwm_db', 'root', '');
+			$pdo = new PDO("mysql:host=$h;dbname=$n", $u, $p);
 			return $pdo;
 		}catch(PDOException $e){
 			

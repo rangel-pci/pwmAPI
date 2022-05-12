@@ -1,0 +1,27 @@
+<?php
+
+Class Config{
+    static $app_name = 'PWM';
+    static $app_url = 'http://192.168.1.13/';
+    static $app_api_url = 'http://192.168.1.13/api/v1/';
+    // banco de dados
+    static $db_host = '127.0.0.1';
+    static $db_name = 'pwm_db';
+    static $db_user = 'root';
+    static $db_password = '';
+    // e-mail *é necessário para poder enviar a chave de verificação após criar uma conta
+    static $mail_login = 'exemplotest@gmail.com';
+    static $mail_password = 'senha123';
+    static $mail_smtp_secure = 'tls'; #suporta 'tls' e 'ssl'
+	static $mail_host = 'smtp.gmail.com';
+	static $mail_port = '587'; #porta tcp
+    // chave utilizada para assinar o JWT
+    static $signingKey = '!@@meu_segredo@@';
+    // domínio que tem autarização para fazer as requests ou  "*" para qualquer domínio
+    static $access_control_allow_origin = '*'; #http://192.168.1.14:3000 #http://localhost:3000 #*
+
+    // documentação da api
+    static $api_doc_link = 'https://documenter.getpostman.com/view/11970203/T17J9muk?version=latest#b46981c5-ea4a-4e09-a12e-ab53def36cf3';
+}
+
+?>

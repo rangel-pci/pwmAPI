@@ -30,7 +30,7 @@
 		restore_error_handler();
 			
 
-		$temp_dir = $_SERVER['DOCUMENT_ROOT'].'/backend/temp/';
+		$temp_dir = $_SERVER['DOCUMENT_ROOT'].'/temp/';
 		$temp_name = uniqid('temp'.bin2hex(random_bytes(50))).time();
 
 		imagejpeg($img, $temp_dir.$temp_name . image_type_to_extension(IMAGETYPE_JPEG));
@@ -44,12 +44,12 @@
 			$_FILES['file'] = file_get_contents($temp_dir.$temp_name.'.jpeg');
 
 			$file_name = md5($temp_name.$user_data['login']).'.'.'jpeg';
-			$dir = $_SERVER['DOCUMENT_ROOT']."/backend/profile_image/";
+			$dir = $_SERVER['DOCUMENT_ROOT'].'/profile_image/';
 
 			file_put_contents($dir.$file_name, $_FILES['file']);
 			unlink($temp_dir.$temp_name.'.jpeg');
 			
-			$file_path = 'http://'.$_SERVER['SERVER_NAME'].'/backend/profile_image/'.$file_name;
+			$file_path = Config::$app_url.'profile_image/'.$file_name;
 			return $file_path;
 
 		}else{

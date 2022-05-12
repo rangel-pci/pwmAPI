@@ -14,7 +14,7 @@
 			if(gettype($isLogged) !== gettype(1)){
 				
 				http_response_code(401);
-				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, login at api.playwithme/login to continue'));
+				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, log in to continue'));
 			}else{
 				$user_id = $isLogged;
 			}

@@ -15,6 +15,9 @@
 			$pdo = dbConnect();
 			$query;
 
+			$users = array();
+			$users_recommended = array();
+
 			//busca os usuários por $name
 			if (isset($params['search'])) {
 
@@ -26,11 +29,73 @@
 				$sql->execute([$name, 1]);
 				
 			}else{
+				//verifica se o usuário está autenticado se sim, lista os usuário quem possuem o mesmo jogo que ele na game_list
+				require_once('./inc/is_logged.php');
 
-				//caso a requisição não possua parâmetros lista todos
-				$query = "SELECT id, image, name, info, discord, steam, origin, twitch, psn, xbox, created FROM user WHERE verified = ? ORDER BY RAND() LIMIT 0, 15";
-				$sql = $pdo->prepare($query);
-				$sql->execute([1]);
+				//retorna o id do usuário logado
+				//se a resposta não for do tipo int houve algum problema no processo
+				$isLogged = is_logged($pdo); 
+				if(gettype($isLogged) !== gettype(1)){
+					$isLogged = false;
+				}else{
+					$user_id = $isLogged;
+				}
+				//se o token é válido e rotornou o id do usuário, significa que ele está tá logado e pode realizar a ação
+
+				if($isLogged){
+					// pega o jogos do usuário logado
+					$query = "SELECT game_id FROM user_game WHERE user_id = ? ORDER BY RAND() LIMIT 0, 15";
+					$sql = $pdo->prepare($query);
+					$sql->execute([$user_id]);
+
+					$games_id = array();
+					while($row = $sql->fetch(PDO::FETCH_ASSOC)){
+						$games_id[] = $row['game_id'];
+					}
+
+					if(count($games_id) > 0){
+						// pega os usuários que possuem um ou mais jogo iguais ao do usuário logado
+						$in  = str_repeat('?,', count($games_id) - 1) . '?';
+						$query = "SELECT user_id FROM user_game WHERE game_id IN ($in) AND user_id != ? GROUP BY user_id ORDER BY RAND() LIMIT 0, 15";
+						$sql = $pdo->prepare($query);
+						$sql->execute(array_merge($games_id, [$user_id]));
+
+						$users_id = array();
+						while($row = $sql->fetch(PDO::FETCH_ASSOC)){
+							$users_id[] = $row['user_id'];
+						}
+
+						if(count($users_id) > 0){
+							$users_recommended = [];
+							foreach($users_id as $id){
+								$user = json_decode($this->findById($id), true);
+								if ($user['status'] == 200) {
+									$users_recommended[] = $user['response'];
+								} 	
+							}
+
+							$limit = 15 - count($users_recommended);
+
+							$in  = str_repeat('?,', count($users_id) - 1) . '?';
+							$query = "SELECT id, image, name, info, discord, steam, origin, twitch, psn, xbox, created FROM user WHERE id NOT IN ($in) AND verified = ? ORDER BY RAND() LIMIT 0, $limit";
+							$sql = $pdo->prepare($query);
+							$sql->execute(array_merge($users_id, [1]));
+						}else{
+							$query = "SELECT id, image, name, info, discord, steam, origin, twitch, psn, xbox, created FROM user WHERE verified = ? ORDER BY RAND() LIMIT 0, 15";
+							$sql = $pdo->prepare($query);
+							$sql->execute([1]);	
+						}
+					}else{
+						$query = "SELECT id, image, name, info, discord, steam, origin, twitch, psn, xbox, created FROM user WHERE verified = ? ORDER BY RAND() LIMIT 0, 15";
+						$sql = $pdo->prepare($query);
+						$sql->execute([1]);
+					}
+				}else{
+					//caso não esteja logado, paxa 15 usuários de forma aleatória
+					$query = "SELECT id, image, name, info, discord, steam, origin, twitch, psn, xbox, created FROM user WHERE verified = ? ORDER BY RAND() LIMIT 0, 15";
+					$sql = $pdo->prepare($query);
+					$sql->execute([1]);
+				}
 			}			
 
 			$users = array();
@@ -52,8 +117,20 @@
 				}
 			}
 
-			http_response_code(200);
-			return json_encode(array('status' => '200', 'total' => count($users), 'response' => $users));
+			if(count($users_recommended) == 0){
+				if (isset($params['search'])){
+					http_response_code(200);
+					return json_encode(array('status' => '200', 'total' => count($users), 'response' => $users));
+				}
+				http_response_code(200);
+				return json_encode(array('status' => '200', 'total' => count($users), 'response' => ['users_random' => $users]));
+			}else{
+				http_response_code(200);
+				return json_encode(array(
+					'status' => '200',
+					'total' => count(array_merge($users, $users_recommended)), 
+					'response' => ['users_recommended' => $users_recommended, 'users_random' => $users]));
+			}
 		}
 
 		//lista o usuário de id = $id
@@ -190,7 +267,7 @@
 
 						//echo $_SERVER['DOCUMENT_ROOT'];
 						$img_path = explode('/', $img_path);
-						unlink($_SERVER['DOCUMENT_ROOT'].'/backend/profile_image/'.end($img_path));						
+						unlink($_SERVER['DOCUMENT_ROOT'].'/profile_image/'.end($img_path));						
 						http_response_code(409);
 						return json_encode(array('status' => '409', 'response' => 'the login already exists, choose another one'));
 					}else{
@@ -201,7 +278,7 @@
 						if ($sql->rowCount() > 0) {
 
 							$img_path = explode('/', $img_path);
-							unlink($_SERVER['DOCUMENT_ROOT'].'/backend/profile_image/'.end($img_path));
+							unlink($_SERVER['DOCUMENT_ROOT'].'/profile_image/'.end($img_path));
 
 							http_response_code(409);
 							return json_encode(array('status' => '409', 'response' => 'the email already exists, choose another one'));
@@ -220,8 +297,8 @@
 						//envia um email com o código de ativação da conta
 						$email = $user_data['email'];
 						$name = $user_data['name'];
-						$subject = 'PWM Account Activation';
-						$body = "Clique \"<a href='http://localhost:3000/register/verification?key=$vkey'><strong>AQUI</strong></a>\" para ativar a sua conta na PWM";
+						$subject = Config::$app_name.' Ativação de conta';
+						$body = "Clique \"<a href='".Config::$app_url."register/verification?key=$vkey'><strong>AQUI</strong></a>\" para ativar a sua conta";
 						
 						require_once ('./inc/send_mail.php');
 
@@ -248,7 +325,7 @@
 			if(gettype($isLogged) !== gettype(1)){
 				
 				http_response_code(401);
-				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, login at api.playwithme/login to continue'));
+				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, log in to continue'));
 			}else{
 				$user_id = $isLogged;
 			}
@@ -310,7 +387,7 @@
 					if($sql->rowCount() < 1){
 
 						$img_path = explode('/', $img_path);
-						unlink($_SERVER['DOCUMENT_ROOT'].'/backend/profile_image/'.end($img_path));
+						unlink($_SERVER['DOCUMENT_ROOT'].'/profile_image/'.end($img_path));
 
 						http_response_code(404);
 						return json_encode(array('status' => '404', 'response' => 'user not found'));
@@ -322,7 +399,7 @@
 					//echo $_SERVER['DOCUMENT_ROOT'];
 					$old_img_path = explode('/', $old_img_path);
 					
-					unlink($_SERVER['DOCUMENT_ROOT'].'/backend/profile_image/'.end($old_img_path));
+					unlink($_SERVER['DOCUMENT_ROOT'].'/profile_image/'.end($old_img_path));
 
 					
 					$query = "UPDATE user SET name = ?, info = ?, image = ?, discord = ?, steam = ?, origin = ?, twitch = ?, psn = ?, xbox = ? WHERE id = ?";
@@ -356,7 +433,7 @@
 			if(gettype($isLogged) !== gettype(1)){
 				
 				http_response_code(401);
-				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, login at api.playwithme/login to continue'));
+				return json_encode(array('status'=>'401', 'response'=>'invalid or expired token, log in to continue'));
 			}else{
 				$user_id = $isLogged;
 			}

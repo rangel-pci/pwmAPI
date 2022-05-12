@@ -1,14 +1,15 @@
 <?php
 	
-	namespace PHPMailer\PHPMailer;
-	require_once('phpmailer/POP3.php');
-	require_once('phpmailer/SMTP.php');
-	require_once('phpmailer/PHPMailer.php');
+	// namespace PHPMailer\PHPMailer;
+	// require_once('phpmailer/POP3.php');
+	// require_once('phpmailer/SMTP.php');
+	// require_once('phpmailer/PHPMailer.php');
+
+	use PHPMailer\PHPMailer\PHPMailer;
+	use PHPMailer\PHPMailer\SMTP;
+	use PHPMailer\PHPMailer\Exception;
  	
  	//email usado para enviar as chaves de ativação das contas
-	$your_email = "your_email@gmail.com"
-	$your_password = "your_password";
-
 
 	$mail = new PHPMailer();
 	$mail->CharSet =  "utf-8";
@@ -16,14 +17,14 @@
 	$mail->SMTPDebug = 0;  // Enable verbose debug output
 	$mail->SMTPAuth = true; // Enable SMTP authentication
 
-	$mail->Username = $your_email;
-	$mail->Password = $your_password;
-	$mail->SMTPSecure = 'tls'; // Enable TLS encryption, `ssl` also accepted
-	$mail->Host = "smtp.gmail.com"; // SMTP 
-	$mail->Port = "587"; // TCP port to connect to
+	$mail->Username = \Config::$mail_login;
+	$mail->Password = \Config::$mail_password;
+	$mail->SMTPSecure = \Config::$mail_smtp_secure; // Enable TLS encryption, `ssl` also accepted
+	$mail->Host = \Config::$mail_host; // SMTP 
+	$mail->Port = \Config::$mail_port; // TCP port to connect to
 	 
 
-	$mail->setFrom($your_email, 'PWM');
+	$mail->setFrom(\Config::$mail_login, \Config::$app_name);
 	$mail->AddAddress($email , $name); // Add a recipient
 	
 	 
@@ -32,9 +33,9 @@
 	$mail->ContentType = "text/html";
 	 
 	if($mail->Send()){
-	 $str = "OK"; 
+		$str = "OK";
 	}else{
-	 $str = "ERR"; 
+		http_response_code(500);
+		return json_encode(array('status' => '500', 'response' => 'internal server error. Error: '.$mail->ErrorInfo));
 	}
-
 ?>
