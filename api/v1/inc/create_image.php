@@ -1,5 +1,4 @@
 <?php
-	
 	function create_image(array $user_data)
 	{
 		//recebe uma imagem em base64 e converte em uma imagem.jpeg
@@ -7,7 +6,7 @@
 		$exploded = explode(',', $image, 2);
 		$encoded = $exploded[1];
 
-		//casso contenha 'false' significa que o usuário não altero a imagem de perfil
+		//casso contenha 'false' significa que o usuário não alterou a imagem de perfil
 		if($exploded[1] == "false"){
 			header("content-type: image/jpeg");
 			$image = file_get_contents($exploded[0]);
@@ -26,13 +25,31 @@
 		});
 
 		$img = imagecreatefromstring($decoded);
+		
+		// corrigre a orientação da imagem
+		$exif = exif_read_data('data://image/jpeg;base64,' . $encoded);
+		// var_dump($exif);
+		if (!empty($exif['Orientation'])) {
+			switch ($exif['Orientation']) {
+				case 3:
+					$img = imagerotate($img, 180, 0);
+					break;
+				
+				case 6:
+					$img = imagerotate($img, -90, 0);
+					break;
+				
+				case 8:
+					$img = imagerotate($img, 90, 0);
+					break;
+			}
+		}
 
 		restore_error_handler();
 			
-
 		$temp_dir = $_SERVER['DOCUMENT_ROOT'].'/temp/';
 		$temp_name = uniqid('temp'.bin2hex(random_bytes(50))).time();
-
+		
 		imagejpeg($img, $temp_dir.$temp_name . image_type_to_extension(IMAGETYPE_JPEG));
 		imagedestroy($img);
 
